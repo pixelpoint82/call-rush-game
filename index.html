@@ -35,7 +35,7 @@
       padding: 15px;
       max-width: 90%;
       margin: 15px auto;
-      text-align: left;
+      text-align: center;
     }
     #gameArea {
       display: none;
@@ -125,17 +125,18 @@
   </style>
 </head>
 <body>
-  <h1>Call Rush!</h1>
+  <h1>📞 Call Rush!</h1>
   <button id="startBtn" onclick="startGame()">▶️ Start Game</button>
 
   <div id="rules">
-    <h3>How to Play</h3>
+    <h3>📋 How to Play</h3>
     <ul>
       <li>Tap a call to select it</li>
       <li>Tap a department to drop it: Tech, Billing, Sales, Ignore</li>
       <li>Sales calls extend coffee break duration</li>
       <li>Reach 100 points to go to the next level</li>
       <li>Reach Level 10 to become the Call Rush Champion!</li>
+      <li>Use <strong>☕ Coffee Break</strong> to slow the calls temporarily</li>
     </ul>
   </div>
 
@@ -154,12 +155,17 @@
   </div>
 
   <div id="gameOverlay">
-    <h2>🚨 Game Over</h2>
+    <h2>🚨 Game Over: KPI Met!</h2>
     <button class="overlayBtn" onclick="retryGame()">🔁 Retry</button>
     <button class="overlayBtn" onclick="goHome()">🏠 Home</button>
   </div>
 
   <footer>Design and Develop by: PixelPoint • Version 1.0</footer>
+  
+  <audio id="callSound" src="sounds/call.mp3" preload="auto"></audio>
+  <audio id="correctSound" src="sounds/correct.mp3" preload="auto"></audio>
+  <audio id="wrongSound" src="sounds/wrong.mp3" preload="auto"></audio>
+  <audio id="powerupSound" src="sounds/powerup.mp3" preload="auto"></audio>
 
   <script>
     let score = 0;
@@ -214,6 +220,15 @@ function startGame() {
 function retryGame() {
       clearInterval(intervalId);
       startGame();
+    }
+
+function goHome() {
+      clearInterval(intervalId);
+      gameArea.style.display = 'none';
+      rules.style.display = 'block';
+      startBtn.style.display = 'inline-block';
+      gameOverlay.style.display = 'none';
+      score = 0;
     }
 function updateScore(val) {
       score += val;
