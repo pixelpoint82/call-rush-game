@@ -5,65 +5,43 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Call Rush!</title>
   <style>
-    * { box-sizing: border-box; }
     body {
-      margin: 0;
       font-family: Arial, sans-serif;
-      background: #1a1a1a;
-      color: white;
+      margin: 0;
+      background-color: #1e1e1e;
+      color: #fff;
       text-align: center;
     }
     h1 {
       font-size: 10vw;
       color: gold;
-      margin-top: 10px;
-    }
-    #startBtn, .overlayBtn {
-      font-size: 1.2rem;
-      padding: 10px 20px;
-      background: darkorange;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      margin: 10px;
-      cursor: pointer;
-    }
-    #rules {
-      background: #333;
-      border: 1px solid #666;
-      border-radius: 10px;
-      padding: 15px;
-      max-width: 90%;
-      margin: 15px auto;
-      text-align: left;
+      margin-top: 20px;
     }
     #gameArea {
       display: none;
-      max-width: 400px;
-      margin: 0 auto;
-      padding: 10px;
+      max-width: 600px;
+      margin: auto;
     }
     #incomingCalls {
-      width: 100%;
-      height: 250px;
-      background: #2c2c2c;
-      border: 3px solid gold;
-      border-radius: 10px;
+      height: 200px;
+      background: #333;
+      margin: 10px auto;
       position: relative;
       overflow: hidden;
+      border-radius: 10px;
     }
     .call {
       position: absolute;
-      padding: 10px;
       background: cyan;
       color: black;
+      padding: 5px 10px;
+      border-radius: 5px;
       font-weight: bold;
-      border-radius: 8px;
-      font-size: 0.9rem;
       cursor: pointer;
     }
-    .call.selected {
+    .selected {
       animation: glow 1s infinite;
+      box-shadow: 0 0 10px yellow;
     }
     @keyframes glow {
       0% { box-shadow: 0 0 5px yellow; }
@@ -71,215 +49,165 @@
       100% { box-shadow: 0 0 5px yellow; }
     }
     .dropzone {
-      flex: 1;
+      background: #555;
+      border: 2px dashed #888;
+      border-radius: 5px;
       margin: 5px;
-      min-width: 90px;
-      max-width: 100px;
-      height: 80px;
-      background: #444;
-      border: 2px dashed #ccc;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      padding: 20px;
+      width: 90px;
+      display: inline-block;
+      color: white;
     }
-    #departments {
-      display: flex;
-      justify-content: space-around;
-      flex-wrap: wrap;
+    #score, #level {
+      font-size: 20px;
       margin-top: 10px;
     }
-    #level, #score, #leaderboard {
-      margin: 10px 0;
-    }
-    .powerup {
-      background: green;
-      padding: 10px;
-      border-radius: 5px;
-      cursor: pointer;
-      display: inline-block;
-    }
-    #gameOverlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.9);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      z-index: 999;
-    }
-    #gameOverlay h2 {
-      font-size: 1.5rem;
-      color: white;
-      margin-bottom: 20px;
-    }
-    footer {
+    #footer {
+      margin-top: 30px;
       font-size: 0.8rem;
       color: #aaa;
-      margin-top: 30px;
     }
   </style>
 </head>
 <body>
-  <h1>Call Rush!</h1>
-  <button id="startBtn" onclick="startGame()">▶️ Start Game</button>
 
-  <div id="rules">
-    <h3>How to Play</h3>
-    <ul>
-      <li>Tap a call to select it</li>
-      <li>Tap a department to drop it: Tech, Billing, Sales, Ignore</li>
-      <li>Sales calls extend coffee break duration</li>
-      <li>Reach 100 points to go to the next level</li>
-      <li>Reach Level 10 to become the Call Rush Champion!</li>
-    </ul>
+<h1>Call Rush!</h1>
+<button onclick="startGame()">Start</button>
+
+<div id="gameArea">
+  <div id="incomingCalls"></div>
+  <div>
+    <div class="dropzone" data-type="tech">Tech</div>
+    <div class="dropzone" data-type="billing">Billing</div>
+    <div class="dropzone" data-type="sales">Sales</div>
+    <div class="dropzone" data-type="spam">Ignore</div>
   </div>
+  <div id="score">Score: 0</div>
+  <div id="level">Level: 1</div>
+</div>
 
-  <div id="gameArea">
-    <div id="incomingCalls"></div>
-    <div id="departments">
-      <div class="dropzone" data-type="tech">🛠️ Tech</div>
-      <div class="dropzone" data-type="billing">💰 Billing</div>
-      <div class="dropzone" data-type="sales">📞 Sales</div>
-      <div class="dropzone" data-type="ignore">❌ Ignore</div>
-    </div>
-    <div id="level">Level: 1</div>
-    <div id="score">Score: 0</div>
-    <div class="powerup" onclick="activatePowerup()">☕ Coffee Break</div>
-    <div id="leaderboard"></div>
-  </div>
+<div id="footer">Design and Develop by: PixelPoint • Version 1.0</div>
 
-  <div id="gameOverlay">
-    <h2>🚨 Game Over</h2>
-    <button class="overlayBtn" onclick="retryGame()">🔁 Retry</button>
-    <button class="overlayBtn" onclick="goHome()">🏠 Home</button>
-  </div>
+<script>
+let score = 0;
+let level = 1;
+let speed = 30;
+let intervalId;
+let selectedCall = null;
+let coffeeBreakBonus = 0;
 
-  <footer>Design and Develop by: PixelPoint • Version 1.0</footer>
+const callTypes = {
+  tech: ["network", "router", "slow internet", "VPN issue", "server down",
+    "no signal", "reboot needed", "device error", "IT support", "LAN problem",
+    "Wi-Fi drop", "login issue", "blue screen", "firmware bug", "update failed"],
+  billing: ["invoice", "refund", "overcharge", "payment failed", "subscription",
+    "late fee", "chargeback", "bill inquiry", "unauthorized charge", "payment plan",
+    "invoice copy", "auto-pay issue", "tax question", "billing cycle", "due date"],
+  sales: ["upgrade", "promo offer", "discount", "new plan", "bundle deal",
+    "cross-sell", "upsize", "recontract", "special rate", "limited time",
+    "renewal", "buy 1 get 1", "overdue", "free trial", "new device"],
+  spam: ["spam", "prank", "wrong number", "telemarketer", "dead air",
+    "silent call", "scam", "bot call", "sales pitch", "robocall",
+    "nuisance", "hang-up", "junk call", "fake inquiry", "unknown"]
+};
 
-  <script>
-    let score = 0;
-    let level = 1;
-    let speed = 30;
-    let intervalId;
-    const calls = ['tech', 'billing', 'sales', 'spam'];
-    let selectedCall = null;
+const departments = Object.keys(callTypes);
+const incomingCalls = document.getElementById("incomingCalls");
+const scoreDisplay = document.getElementById("score");
+const levelDisplay = document.getElementById("level");
 
-    const levelDisplay = document.getElementById("level");
-    const scoreDisplay = document.getElementById("score");
-    const overlayTitle = document.querySelector("#gameOverlay h2");
+function startGame() {
+  score = 0;
+  level = 1;
+  speed = 30;
+  updateScore(0);
+  updateLevel(1);
+  incomingCalls.innerHTML = "";
+  document.getElementById("gameArea").style.display = "block";
+  clearInterval(intervalId);
+  intervalId = setInterval(createCall, 2000);
+}
 
-    function startGame() {
-      score = 0;
-      level = 1;
-      speed = 30;
-      document.getElementById("startBtn").style.display = "none";
-      document.getElementById("rules").style.display = "none";
-      document.getElementById("gameArea").style.display = "block";
-      document.getElementById("gameOverlay").style.display = "none";
-      updateScore(0);
-      intervalId = setInterval(createCall, 2000);
+function updateScore(val) {
+  score += val;
+  scoreDisplay.innerText = "Score: " + score;
+
+  if (score >= level * 100 && level < 10) {
+    level++;
+    updateLevel(level);
+    if (speed > 10) speed -= 5;
+  }
+
+  if (level === 10 && score >= 1000) {
+    alert("🏆 You are the Call Rush Champion!");
+    clearInterval(intervalId);
+  } else if (score <= -50) {
+    alert("❌ You failed to meet your KPI.");
+    clearInterval(intervalId);
+  }
+}
+
+function updateLevel(lvl) {
+  levelDisplay.innerText = "Level: " + lvl;
+}
+
+function createCall() {
+  const dept = departments[Math.floor(Math.random() * departments.length)];
+  const label = callTypes[dept][Math.floor(Math.random() * callTypes[dept].length)];
+  const call = document.createElement("div");
+  call.className = "call";
+  call.innerText = label;
+  call.dataset.type = dept;
+  call.style.left = Math.random() * 80 + "%";
+  call.style.top = "0px";
+  incomingCalls.appendChild(call);
+
+  call.addEventListener("click", () => {
+    if (selectedCall && selectedCall !== call) {
+      selectedCall.classList.remove("selected");
     }
-
-    function retryGame() {
-      clearInterval(intervalId);
-      startGame();
+    selectedCall = call;
+    call.classList.toggle("selected");
+    if (!call.classList.contains("selected")) {
+      selectedCall = null;
     }
+  });
 
-    function goHome() {
-      clearInterval(intervalId);
-      document.getElementById("gameArea").style.display = "none";
-      document.getElementById("rules").style.display = "block";
-      document.getElementById("startBtn").style.display = "inline-block";
-    }
-
-    function updateScore(val) {
-      score += val;
-      scoreDisplay.innerText = "Score: " + score;
-      if (score >= level * 100 && level < 10) {
-        level++;
-        levelDisplay.innerText = "Level: " + level;
-        if (speed > 10) speed -= 3;
+  let pos = 0;
+  const fall = setInterval(() => {
+    pos += 2;
+    if (pos >= 180) {
+      clearInterval(fall);
+      if (incomingCalls.contains(call)) {
+        call.remove();
+        let missedPenalty = -10 - (level - 1) * 2;
+        updateScore(missedPenalty);
       }
-      checkKPI();
+    } else {
+      call.style.top = pos + "px";
+    }
+  }, speed);
+}
+
+document.querySelectorAll('.dropzone').forEach(zone => {
+  zone.addEventListener("click", () => {
+    if (!selectedCall) return;
+    const callType = selectedCall.dataset.type;
+    const expected = zone.dataset.type;
+
+    if ((expected === 'spam' && callType === 'spam') || expected === callType) {
+      updateScore(10);
+      if (callType === "sales") coffeeBreakBonus += 5;
+    } else {
+      let wrongPenalty = -5 - (level - 1);
+      updateScore(wrongPenalty);
     }
 
-    function checkKPI() {
-      if (level >= 10 && score >= 1000) {
-        clearInterval(intervalId);
-        overlayTitle.innerText = "🏆 You are the Call Rush Champion!";
-        overlayTitle.style.color = "gold";
-        document.getElementById("gameOverlay").style.display = "flex";
-        return true;
-      } else if (score <= -50) {
-        clearInterval(intervalId);
-        overlayTitle.innerText = "😞 Sorry, you failed to meet your target KPI.";
-        overlayTitle.style.color = "red";
-        document.getElementById("gameOverlay").style.display = "flex";
-        return true;
-      }
-      return false;
-    }
+    selectedCall.remove();
+    selectedCall = null;
+  });
+});
+</script>
 
-    function createCall() {
-      const call = document.createElement("div");
-      const type = calls[Math.floor(Math.random() * calls.length)];
-      call.className = "call";
-      call.innerText = type;
-      call.dataset.type = type;
-      call.style.left = Math.random() * 80 + "%";
-      call.onclick = () => selectCall(call);
-
-      document.getElementById("incomingCalls").appendChild(call);
-
-      let topPos = 0;
-      const fall = setInterval(() => {
-        if (!call.parentNode) return clearInterval(fall);
-        topPos += 2;
-        call.style.top = topPos + "px";
-        if (topPos > 220) {
-          call.remove();
-          updateScore(-10);
-          clearInterval(fall);
-        }
-      }, speed);
-    }
-
-    function selectCall(call) {
-      if (selectedCall) selectedCall.classList.remove("selected");
-      selectedCall = call;
-      call.classList.add("selected");
-    }
-
-    document.querySelectorAll('.dropzone').forEach(zone => {
-      zone.onclick = () => {
-        if (!selectedCall) return;
-        const expected = zone.dataset.type;
-        const actual = selectedCall.dataset.type;
-        if ((expected === 'ignore' && actual === 'spam') || expected === actual) {
-          updateScore(10);
-          if (actual === 'sales') powerupTime += 5;
-        } else {
-          updateScore(-5);
-        }
-        selectedCall.remove();
-        selectedCall = null;
-      };
-    });
-
-    let powerupTime = 5;
-    function activatePowerup() {
-      speed += 20;
-      document.querySelector(".powerup").innerText = `☕ Coffee Break (${powerupTime}s)`;
-      setTimeout(() => {
-        speed -= 20;
-        document.querySelector(".powerup").innerText = "☕ Coffee Break";
-      }, powerupTime * 1000);
-    }
-  </script>
 </body>
 </html>
