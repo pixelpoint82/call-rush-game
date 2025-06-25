@@ -13,7 +13,8 @@
     #departments { display: flex; justify-content: space-around; margin-top: 10px; }
     .dropzone { width: 100px; height: 100px; background: #555; border: 2px dashed #ccc; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; }
     #score, #leaderboard { margin-top: 10px; font-size: 18px; color: lightyellow; }
-    .powerup, #startBtn { background: green; color: white; padding: 10px; border-radius: 5px; margin-top: 10px; cursor: pointer; display: inline-block; }
+    .powerup { background: green; color: white; padding: 10px; border-radius: 5px; margin-top: 10px; cursor: pointer; display: inline-block; }
+    #startBtn, #retryBtn { font-size: 20px; padding: 12px 25px; border-radius: 8px; background: darkorange; color: white; border: none; cursor: pointer; margin-top: 20px; }
     #gameOver { display: none; font-size: 24px; margin-top: 20px; color: red; }
   </style>
 </head>
@@ -21,6 +22,7 @@
 
   <h1>📞 Call Rush!</h1>
   <button id="startBtn" onclick="startGame()">▶️ Start Game</button>
+  <button id="retryBtn" onclick="retryGame()" style="display:none;">🔁 Retry</button>
 
   <div id="gameArea">
     <div id="incomingCalls"></div>
@@ -50,6 +52,7 @@
     const scoreDisplay = document.getElementById('score');
     const leaderboard = document.getElementById('leaderboard');
     const gameOver = document.getElementById('gameOver');
+    const retryBtn = document.getElementById('retryBtn');
 
     const callSound = document.getElementById('callSound');
     const correctSound = document.getElementById('correctSound');
@@ -58,8 +61,17 @@
 
     function startGame() {
       document.getElementById('startBtn').style.display = 'none';
+      retryBtn.style.display = 'none';
+      gameOver.style.display = 'none';
       gameArea.style.display = 'block';
+      score = 0;
+      updateScore(0);
       intervalId = setInterval(createCall, 2000);
+    }
+
+    function retryGame() {
+      document.getElementById('incomingCalls').innerHTML = '';
+      startGame();
     }
 
     function createCall() {
@@ -146,6 +158,7 @@
       if (score >= 100 || score <= -50) {
         clearInterval(intervalId);
         gameOver.style.display = 'block';
+        retryBtn.style.display = 'inline-block';
         return true;
       }
       return false;
