@@ -37,6 +37,15 @@
       margin: 15px auto;
       text-align: left;
     }
+    #about {
+      background: #333;
+      border: 1px solid #666;
+      border-radius: 10px;
+      padding: 15px;
+      max-width: 90%;
+      margin: 15px auto;
+      text-align: left;
+    }
     #gameArea {
       display: none;
       max-width: 400px;
@@ -127,9 +136,11 @@
 <body>
   <h1>📞 Call Rush!</h1>
   <button id="startBtn" onclick="startGame()">▶️ Start Game</button>
-
+<div id="about">
+  <h3>A fast-paced sorting game for call center agents! Quickly assign incoming calls to the right department and climb through 10 levels. Stay sharp, beat your KPI, and become the Call Rush Champion!</h3>
+</div>
   <div id="rules">
-    <h3>📋 How to Play</h3>
+    <h3><center>📋 How to Play</center></h3>
     <ul>
       <li>Tap a call to select it</li>
       <li>Tap a department to drop it: Tech, Billing, Sales, Ignore</li>
