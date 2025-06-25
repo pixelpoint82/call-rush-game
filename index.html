@@ -5,27 +5,134 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Call Rush Game</title>
   <style>
-    body { margin: 0; font-family: sans-serif; background: #1a1a1a; color: white; text-align: center; }
-    h1 { color: gold; margin-top: 20px; }
-    #gameArea { max-width: 400px; margin: 0 auto; display: none; }
-    #incomingCalls { position: relative; width: 100%; height: 400px; background: #333; border: 3px solid gold; border-radius: 10px; overflow: hidden; margin: 20px auto; }
-    .call { position: absolute; padding: 10px 15px; background: cyan; color: black; font-weight: bold; border-radius: 8px; }
-    #departments { display: flex; justify-content: space-around; margin-top: 10px; }
-    .dropzone { width: 100px; height: 100px; background: #555; border: 2px dashed #ccc; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; }
-    #score, #leaderboard { margin-top: 10px; font-size: 18px; color: lightyellow; }
-    .powerup { background: green; color: white; padding: 10px; border-radius: 5px; margin-top: 10px; cursor: pointer; display: inline-block; }
-    #startBtn, #retryBtn { font-size: 20px; padding: 12px 25px; border-radius: 8px; background: darkorange; color: white; border: none; cursor: pointer; margin-top: 20px; }
-    #gameOver { display: none; font-size: 24px; margin-top: 20px; color: red; }
-    #rules { max-width: 400px; margin: 15px auto; background: #2b2b2b; border: 1px solid #555; padding: 15px; border-radius: 10px; text-align: left; font-size: 15px; }
-    #rules h2 { color: #ffd700; font-size: 18px; margin-top: 0; }
-    #rules ul { padding-left: 20px; line-height: 1.5; }
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #1a1a1a;
+      color: white;
+      text-align: center;
+    }
+    h1 {
+      color: gold;
+      margin-top: 20px;
+    }
+    #gameArea {
+      max-width: 400px;
+      margin: 0 auto;
+      display: none;
+    }
+    #incomingCalls {
+      position: relative;
+      width: 100%;
+      height: 400px;
+      background: #333;
+      border: 3px solid gold;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 20px auto;
+    }
+    .call {
+      position: absolute;
+      padding: 10px 15px;
+      background: cyan;
+      color: black;
+      font-weight: bold;
+      border-radius: 8px;
+    }
+    #departments {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 10px;
+    }
+    .dropzone {
+      width: 100px;
+      height: 100px;
+      background: #555;
+      border: 2px dashed #ccc;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+    #score, #leaderboard {
+      margin-top: 10px;
+      font-size: 18px;
+      color: lightyellow;
+    }
+    .powerup {
+      background: green;
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+      margin-top: 10px;
+      cursor: pointer;
+      display: inline-block;
+    }
+    #startBtn {
+      font-size: 20px;
+      padding: 12px 25px;
+      border-radius: 8px;
+      background: darkorange;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    #rules {
+      max-width: 400px;
+      margin: 15px auto;
+      background: #2b2b2b;
+      border: 1px solid #555;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: left;
+      font-size: 15px;
+    }
+    #rules h2 {
+      color: #ffd700;
+      font-size: 18px;
+      margin-top: 0;
+    }
+    #rules ul {
+      padding-left: 20px;
+      line-height: 1.5;
+    }
+
+    /* Game Over Overlay */
+    #gameOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 1000;
+    }
+    #gameOverlay h2 {
+      color: red;
+      font-size: 32px;
+      margin-bottom: 20px;
+    }
+    #retryBtn {
+      font-size: 20px;
+      padding: 12px 25px;
+      border-radius: 8px;
+      background: limegreen;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
 
   <h1>📞 Call Rush!</h1>
   <button id="startBtn" onclick="startGame()">▶️ Start Game</button>
-  <button id="retryBtn" onclick="retryGame()" style="display:none;">🔁 Retry</button>
 
   <div id="rules">
     <h2>📋 How to Play</h2>
@@ -54,7 +161,12 @@
     <div id="score">Score: 0</div>
     <div class="powerup" onclick="activatePowerup()">☕ Coffee Break</div>
     <div id="leaderboard"></div>
-    <div id="gameOver">🚨 Game Over: KPI Met!</div>
+  </div>
+
+  <!-- Game Over Overlay -->
+  <div id="gameOverlay">
+    <h2>🚨 Game Over: KPI Met!</h2>
+    <button id="retryBtn" onclick="retryGame()">🔁 Retry</button>
   </div>
 
   <!-- Sounds -->
@@ -68,11 +180,13 @@
     let speed = 30;
     let intervalId;
     const calls = ['tech', 'billing', 'spam'];
+
     const gameArea = document.getElementById('gameArea');
     const scoreDisplay = document.getElementById('score');
     const leaderboard = document.getElementById('leaderboard');
-    const gameOver = document.getElementById('gameOver');
-    const retryBtn = document.getElementById('retryBtn');
+    const gameOverlay = document.getElementById('gameOverlay');
+    const rules = document.getElementById('rules');
+    const startBtn = document.getElementById('startBtn');
 
     const callSound = document.getElementById('callSound');
     const correctSound = document.getElementById('correctSound');
@@ -80,9 +194,9 @@
     const powerupSound = document.getElementById('powerupSound');
 
     function startGame() {
-      document.getElementById('startBtn').style.display = 'none';
-      retryBtn.style.display = 'none';
-      gameOver.style.display = 'none';
+      startBtn.style.display = 'none';
+      rules.style.display = 'none';
+      gameOverlay.style.display = 'none';
       gameArea.style.display = 'block';
       score = 0;
       updateScore(0);
@@ -177,8 +291,7 @@
     function checkKPI() {
       if (score >= 100 || score <= -50) {
         clearInterval(intervalId);
-        gameOver.style.display = 'block';
-        retryBtn.style.display = 'inline-block';
+        gameOverlay.style.display = 'flex';
         return true;
       }
       return false;
