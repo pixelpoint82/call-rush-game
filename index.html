@@ -215,6 +215,7 @@ function startGame() {
   document.getElementById("gameOverlay").style.display = "none";
   updateScore(0);
   intervalId = setInterval(createCall, 2000);
+  callSound.play();
 }
 
 function retryGame() {
