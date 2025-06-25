@@ -239,6 +239,7 @@ function updateScore(val) {
         level++;
         levelDisplay.innerText = "Level: " + level;
         if (speed > 10) speed -= 3;
+        correctSound.play();
       }
       checkKPI();
     }
@@ -294,6 +295,7 @@ function createCall() {
         call.remove();
         let missedPenalty = -10 - (level - 1) * 2;
         updateScore(missedPenalty);
+        wrongSound.play();
       }
     } else {
       call.style.top = pos + "px";
@@ -310,9 +312,11 @@ document.querySelectorAll('.dropzone').forEach(zone => {
     if ((expected === 'spam' && callType === 'spam') || expected === callType) {
       updateScore(10);
       if (callType === "sales") coffeeBreakBonus += 5;
+      powerupSound.play();
     } else {
       let wrongPenalty = -5 - (level - 1);
       updateScore(wrongPenalty);
+      wrongSound.play();
     }
 
     selectedCall.remove();
