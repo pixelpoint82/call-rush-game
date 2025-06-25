@@ -2,12 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>Call Rush Game</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: sans-serif;
@@ -18,7 +16,7 @@
     h1 {
       color: gold;
       margin-top: 20px;
-      font-size: 5vw;
+      font-size: 10vw;
     }
     #startBtn, .overlayBtn {
       font-size: 1.2rem;
@@ -245,7 +243,6 @@
 
     function createCall() {
       if (checkKPI()) return;
-
       const type = calls[Math.floor(Math.random() * calls.length)];
       const call = document.createElement('div');
       call.className = 'call';
@@ -272,10 +269,64 @@
     }
 
     function drag(el) {
+      // Desktop
       el.draggable = true;
-      el.ondragstart = e => {
-        e.dataTransfer.setData("type", el.dataset.type);
-      };
+      el.ondragstart = e => e.dataTransfer.setData("type", el.dataset.type);
+
+      // Touch support
+      el.addEventListener("touchstart", handleTouchStart, { passive: true });
+      el.addEventListener("touchmove", handleTouchMove, { passive: false });
+      el.addEventListener("touchend", handleTouchEnd, { passive: true });
+    }
+
+    let currentDragged = null;
+
+    function handleTouchStart(e) {
+      currentDragged = e.target;
+      currentDragged.style.zIndex = 1000;
+    }
+
+    function handleTouchMove(e) {
+      e.preventDefault();
+      const touch = e.touches[0];
+      currentDragged.style.position = "absolute";
+      currentDragged.style.left = touch.clientX - 25 + "px";
+      currentDragged.style.top = touch.clientY - 25 + "px";
+    }
+
+    function handleTouchEnd(e) {
+      const callType = currentDragged.dataset.type;
+      const callBox = currentDragged.getBoundingClientRect();
+      const dropzones = document.querySelectorAll('.dropzone');
+      let dropped = false;
+
+      dropzones.forEach(zone => {
+        const rect = zone.getBoundingClientRect();
+        if (
+          callBox.left < rect.right &&
+          callBox.right > rect.left &&
+          callBox.top < rect.bottom &&
+          callBox.bottom > rect.top
+        ) {
+          const zoneType = zone.dataset.type;
+          if ((zoneType === 'ignore' && callType === 'spam') || zoneType === callType) {
+            updateScore(10);
+            correctSound.play();
+          } else {
+            updateScore(-5);
+            wrongSound.play();
+          }
+          dropped = true;
+        }
+      });
+
+      if (!dropped) {
+        updateScore(-10);
+        wrongSound.play();
+      }
+
+      currentDragged.remove();
+      currentDragged = null;
     }
 
     document.querySelectorAll('.dropzone').forEach(zone => {
