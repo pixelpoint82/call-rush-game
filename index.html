@@ -2,72 +2,56 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <title>Call Rush Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Call Rush!</title>
   <style>
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: sans-serif;
+      font-family: Arial, sans-serif;
       background: #1a1a1a;
       color: white;
       text-align: center;
     }
     h1 {
-      color: gold;
-      margin-top: 20px;
       font-size: 10vw;
+      color: gold;
+      margin-top: 10px;
     }
     #startBtn, .overlayBtn {
       font-size: 1.2rem;
-      padding: 12px 25px;
-      border-radius: 8px;
+      padding: 10px 20px;
       background: darkorange;
       color: white;
       border: none;
-      cursor: pointer;
+      border-radius: 8px;
       margin: 10px;
+      cursor: pointer;
     }
     #rules {
+      background: #333;
+      border: 1px solid #666;
+      border-radius: 10px;
+      padding: 15px;
       max-width: 90%;
       margin: 15px auto;
-      background: #2b2b2b;
-      border: 1px solid #555;
-      padding: 15px;
-      border-radius: 10px;
       text-align: left;
-      font-size: 0.95rem;
     }
-    #rules h2 {
-      color: #ffd700;
-      font-size: 1.1rem;
-      margin-top: 0;
-    }
-    #rules ul {
-      padding-left: 20px;
-      line-height: 1.5;
-    }
-
     #gameArea {
-      width: 90%;
+      display: none;
       max-width: 400px;
       margin: 0 auto;
-      display: none;
+      padding: 10px;
     }
-
     #incomingCalls {
-      position: relative;
       width: 100%;
-      height: 50vh;
-      min-height: 250px;
-      max-height: 400px;
-      background: #333;
+      height: 250px;
+      background: #2c2c2c;
       border: 3px solid gold;
       border-radius: 10px;
+      position: relative;
       overflow: hidden;
-      margin: 20px auto;
     }
-
     .call {
       position: absolute;
       padding: 10px;
@@ -77,125 +61,93 @@
       border-radius: 8px;
       font-size: 0.9rem;
       cursor: pointer;
-      transition: box-shadow 0.3s ease;
     }
-
     .call.selected {
       animation: glow 1s infinite;
-      box-shadow: 0 0 10px 2px yellow;
     }
-
     @keyframes glow {
-      0% { box-shadow: 0 0 5px 2px yellow; }
-      50% { box-shadow: 0 0 15px 4px yellow; }
-      100% { box-shadow: 0 0 5px 2px yellow; }
+      0% { box-shadow: 0 0 5px yellow; }
+      50% { box-shadow: 0 0 15px yellow; }
+      100% { box-shadow: 0 0 5px yellow; }
     }
-
-    #departments {
-      display: flex;
-      justify-content: space-around;
-      margin-top: 10px;
-      flex-wrap: wrap;
-    }
-
     .dropzone {
       flex: 1;
       margin: 5px;
-      min-width: 70px;
-      max-width: 80px;
-      height: 100px;
-      background: #555;
+      min-width: 90px;
+      max-width: 100px;
+      height: 80px;
+      background: #444;
       border: 2px dashed #ccc;
       border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
     }
-
-    #score, #leaderboard {
+    #departments {
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
       margin-top: 10px;
-      font-size: 1rem;
-      color: lightyellow;
     }
-
+    #level, #score, #leaderboard {
+      margin: 10px 0;
+    }
     .powerup {
       background: green;
-      color: white;
       padding: 10px;
       border-radius: 5px;
-      margin-top: 10px;
       cursor: pointer;
       display: inline-block;
     }
-
     #gameOverlay {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.9);
+      background: rgba(0,0,0,0.9);
       display: none;
       justify-content: center;
       align-items: center;
       flex-direction: column;
-      z-index: 1000;
-      padding: 20px;
+      z-index: 999;
     }
-
     #gameOverlay h2 {
       font-size: 1.5rem;
-      margin-bottom: 20px;
       color: white;
-      text-align: center;
+      margin-bottom: 20px;
     }
-
-    @media (max-width: 500px) {
-      .dropzone {
-        height: 80px;
-        font-size: 0.9rem;
-      }
-      .call {
-        font-size: 0.8rem;
-      }
-      #startBtn, .overlayBtn {
-        font-size: 1rem;
-        padding: 10px 20px;
-      }
+    footer {
+      font-size: 0.8rem;
+      color: #aaa;
+      margin-top: 30px;
     }
   </style>
 </head>
 <body>
-
-  <h1>📞 Call Rush!</h1>
+  <h1>Call Rush!</h1>
   <button id="startBtn" onclick="startGame()">▶️ Start Game</button>
 
   <div id="rules">
-    <h2>📋 How to Play</h2>
+    <h3>How to Play</h3>
     <ul>
       <li>Tap a call to select it</li>
-      <li>Then tap the correct department:</li>
-      <ul>
-        <li><strong>Tech</strong> → tech calls</li>
-        <li><strong>Billing</strong> → billing calls</li>
-        <li><strong>Sales</strong> → sales calls</li>
-        <li><strong>Ignore</strong> → spam calls</li>
-      </ul>
-      <li>Correct = +10, Wrong = -5, Missed = -10</li>
-      <li>Get to 100 points to win, or -50 ends the game</li>
-      <li>Use ☕ Coffee Break to slow calls for 5 seconds</li>
+      <li>Tap a department to drop it: Tech, Billing, Sales, Ignore</li>
+      <li>Sales calls extend coffee break duration</li>
+      <li>Reach 100 points to go to the next level</li>
+      <li>Reach Level 10 to become the Call Rush Champion!</li>
     </ul>
   </div>
 
   <div id="gameArea">
     <div id="incomingCalls"></div>
     <div id="departments">
-      <div class="dropzone" data-type="tech">Tech</div>
-      <div class="dropzone" data-type="billing">Billing</div>
-      <div class="dropzone" data-type="sales">Sales</div>
-      <div class="dropzone" data-type="ignore">Ignore</div>
+      <div class="dropzone" data-type="tech">🛠️ Tech</div>
+      <div class="dropzone" data-type="billing">💰 Billing</div>
+      <div class="dropzone" data-type="sales">📞 Sales</div>
+      <div class="dropzone" data-type="ignore">❌ Ignore</div>
     </div>
+    <div id="level">Level: 1</div>
     <div id="score">Score: 0</div>
     <div class="powerup" onclick="activatePowerup()">☕ Coffee Break</div>
     <div id="leaderboard"></div>
@@ -207,39 +159,28 @@
     <button class="overlayBtn" onclick="goHome()">🏠 Home</button>
   </div>
 
-  <audio id="callSound" src="sounds/call.mp3" preload="auto"></audio>
-  <audio id="correctSound" src="sounds/correct.mp3" preload="auto"></audio>
-  <audio id="wrongSound" src="sounds/wrong.mp3" preload="auto"></audio>
-  <audio id="powerupSound" src="sounds/powerup.mp3" preload="auto"></audio>
+  <footer>Design and Develop by: PixelPoint • Version 1.0</footer>
 
   <script>
     let score = 0;
+    let level = 1;
     let speed = 30;
     let intervalId;
     const calls = ['tech', 'billing', 'sales', 'spam'];
     let selectedCall = null;
 
-    const gameArea = document.getElementById('gameArea');
-    const scoreDisplay = document.getElementById('score');
-    const leaderboard = document.getElementById('leaderboard');
-    const gameOverlay = document.getElementById('gameOverlay');
-    const overlayTitle = gameOverlay.querySelector("h2");
-    const rules = document.getElementById('rules');
-    const startBtn = document.getElementById('startBtn');
-    const incomingCalls = document.getElementById('incomingCalls');
-
-    const callSound = document.getElementById('callSound');
-    const correctSound = document.getElementById('correctSound');
-    const wrongSound = document.getElementById('wrongSound');
-    const powerupSound = document.getElementById('powerupSound');
+    const levelDisplay = document.getElementById("level");
+    const scoreDisplay = document.getElementById("score");
+    const overlayTitle = document.querySelector("#gameOverlay h2");
 
     function startGame() {
-      startBtn.style.display = 'none';
-      rules.style.display = 'none';
-      gameOverlay.style.display = 'none';
-      gameArea.style.display = 'block';
-      incomingCalls.innerHTML = '';
       score = 0;
+      level = 1;
+      speed = 30;
+      document.getElementById("startBtn").style.display = "none";
+      document.getElementById("rules").style.display = "none";
+      document.getElementById("gameArea").style.display = "block";
+      document.getElementById("gameOverlay").style.display = "none";
       updateScore(0);
       intervalId = setInterval(createCall, 2000);
     }
@@ -251,137 +192,93 @@
 
     function goHome() {
       clearInterval(intervalId);
-      gameArea.style.display = 'none';
-      rules.style.display = 'block';
-      startBtn.style.display = 'inline-block';
-      gameOverlay.style.display = 'none';
-      score = 0;
+      document.getElementById("gameArea").style.display = "none";
+      document.getElementById("rules").style.display = "block";
+      document.getElementById("startBtn").style.display = "inline-block";
     }
-
-    function createCall() {
-      if (checkKPI()) return;
-
-      const type = calls[Math.floor(Math.random() * calls.length)];
-      const call = document.createElement('div');
-      call.className = 'call';
-      call.innerText = type;
-      call.dataset.type = type;
-      call.style.left = Math.floor(Math.random() * 250) + 'px';
-      call.style.top = '0px';
-      incomingCalls.appendChild(call);
-      drag(call);
-      callSound.play();
-
-      let pos = 0;
-      const fall = setInterval(() => {
-        pos += 2;
-        if (pos >= incomingCalls.clientHeight - 30) {
-          clearInterval(fall);
-          if (incomingCalls.contains(call)) {
-            call.remove();
-            updateScore(-10);
-            wrongSound.play();
-          }
-        } else {
-          call.style.top = pos + 'px';
-        }
-      }, speed);
-    }
-
-    function drag(el) {
-      el.draggable = true;
-      el.ondragstart = e => e.dataTransfer.setData("type", el.dataset.type);
-
-      el.addEventListener("click", () => {
-        if (selectedCall && selectedCall !== el) {
-          selectedCall.classList.remove("selected");
-        }
-        selectedCall = el;
-        el.classList.toggle("selected");
-        if (!el.classList.contains("selected")) {
-          selectedCall = null;
-        }
-      });
-    }
-
-    document.querySelectorAll('.dropzone').forEach(zone => {
-      zone.ondragover = e => e.preventDefault();
-      zone.ondrop = e => {
-        const draggedType = e.dataTransfer.getData("type");
-        const expected = zone.dataset.type;
-        const call = document.querySelector(`.call[data-type='${draggedType}']`);
-        if ((expected === 'ignore' && draggedType === 'spam') || expected === draggedType) {
-          updateScore(10);
-          correctSound.play();
-        } else {
-          updateScore(-5);
-          wrongSound.play();
-        }
-        if (call) call.remove();
-      };
-
-      zone.addEventListener("click", () => {
-        if (!selectedCall) return;
-        const callType = selectedCall.dataset.type;
-        const expected = zone.dataset.type;
-
-        if ((expected === 'ignore' && callType === 'spam') || expected === callType) {
-          updateScore(10);
-          correctSound.play();
-        } else {
-          updateScore(-5);
-          wrongSound.play();
-        }
-
-        selectedCall.remove();
-        selectedCall = null;
-      });
-    });
 
     function updateScore(val) {
       score += val;
       scoreDisplay.innerText = "Score: " + score;
-      updateLeaderboard();
+      if (score >= level * 100 && level < 10) {
+        level++;
+        levelDisplay.innerText = "Level: " + level;
+        if (speed > 10) speed -= 3;
+      }
       checkKPI();
     }
 
-    function updateLeaderboard() {
-      const best = localStorage.getItem("bestScore") || 0;
-      if (score > best) {
-        localStorage.setItem("bestScore", score);
-        leaderboard.innerText = "🏆 New High Score: " + score;
-      } else {
-        leaderboard.innerText = "High Score: " + best;
-      }
-    }
-
-    function activatePowerup() {
-      powerupSound.play();
-      let oldSpeed = speed;
-      speed = 60;
-      document.querySelector('.powerup').innerText = '⏳ Slowed...';
-      setTimeout(() => {
-        speed = oldSpeed;
-        document.querySelector('.powerup').innerText = '☕ Coffee Break';
-      }, 5000);
-    }
-
     function checkKPI() {
-      if (score >= 100 || score <= -50) {
+      if (level >= 10 && score >= 1000) {
         clearInterval(intervalId);
-
-        if (score >= 100) {
-          overlayTitle.innerText = "🎉 Congratulations! You met your target KPI!";
-          overlayTitle.style.color = "limegreen";
-        } else {
-          overlayTitle.innerText = "😞 Sorry, you failed to meet your target KPI.";
-          overlayTitle.style.color = "red";
-        }
-
-        gameOverlay.style.display = 'flex';
+        overlayTitle.innerText = "🏆 You are the Call Rush Champion!";
+        overlayTitle.style.color = "gold";
+        document.getElementById("gameOverlay").style.display = "flex";
+        return true;
+      } else if (score <= -50) {
+        clearInterval(intervalId);
+        overlayTitle.innerText = "😞 Sorry, you failed to meet your target KPI.";
+        overlayTitle.style.color = "red";
+        document.getElementById("gameOverlay").style.display = "flex";
         return true;
       }
       return false;
+    }
+
+    function createCall() {
+      const call = document.createElement("div");
+      const type = calls[Math.floor(Math.random() * calls.length)];
+      call.className = "call";
+      call.innerText = type;
+      call.dataset.type = type;
+      call.style.left = Math.random() * 80 + "%";
+      call.onclick = () => selectCall(call);
+
+      document.getElementById("incomingCalls").appendChild(call);
+
+      let topPos = 0;
+      const fall = setInterval(() => {
+        if (!call.parentNode) return clearInterval(fall);
+        topPos += 2;
+        call.style.top = topPos + "px";
+        if (topPos > 220) {
+          call.remove();
+          updateScore(-10);
+          clearInterval(fall);
+        }
+      }, speed);
+    }
+
+    function selectCall(call) {
+      if (selectedCall) selectedCall.classList.remove("selected");
+      selectedCall = call;
+      call.classList.add("selected");
+    }
+
+    document.querySelectorAll('.dropzone').forEach(zone => {
+      zone.onclick = () => {
+        if (!selectedCall) return;
+        const expected = zone.dataset.type;
+        const actual = selectedCall.dataset.type;
+        if ((expected === 'ignore' && actual === 'spam') || expected === actual) {
+          updateScore(10);
+          if (actual === 'sales') powerupTime += 5;
+        } else {
+          updateScore(-5);
+        }
+        selectedCall.remove();
+        selectedCall = null;
+      };
+    });
+
+    let powerupTime = 5;
+    function activatePowerup() {
+      speed += 20;
+      document.querySelector(".powerup").innerText = `☕ Coffee Break (${powerupTime}s)`;
+      setTimeout(() => {
+        speed -= 20;
+        document.querySelector(".powerup").innerText = "☕ Coffee Break";
+      }, powerupTime * 1000);
     }
   </script>
 </body>
