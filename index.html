@@ -143,10 +143,12 @@
       z-index: 1000;
       padding: 20px;
     }
+
     #gameOverlay h2 {
-      color: red;
-      font-size: 2rem;
+      font-size: 1.5rem;
       margin-bottom: 20px;
+      color: white;
+      text-align: center;
     }
 
     @media (max-width: 500px) {
@@ -177,6 +179,7 @@
       <ul>
         <li><strong>Tech</strong> → tech calls</li>
         <li><strong>Billing</strong> → billing calls</li>
+        <li><strong>Sales</strong> → sales calls</li>
         <li><strong>Ignore</strong> → spam calls</li>
       </ul>
       <li>Correct = +10, Wrong = -5, Missed = -10</li>
@@ -190,6 +193,7 @@
     <div id="departments">
       <div class="dropzone" data-type="tech">Tech</div>
       <div class="dropzone" data-type="billing">Billing</div>
+      <div class="dropzone" data-type="sales">Sales</div>
       <div class="dropzone" data-type="ignore">Ignore</div>
     </div>
     <div id="score">Score: 0</div>
@@ -198,7 +202,7 @@
   </div>
 
   <div id="gameOverlay">
-    <h2>🚨 Game Over: KPI Met!</h2>
+    <h2>🚨 Game Over</h2>
     <button class="overlayBtn" onclick="retryGame()">🔁 Retry</button>
     <button class="overlayBtn" onclick="goHome()">🏠 Home</button>
   </div>
@@ -212,12 +216,14 @@
     let score = 0;
     let speed = 30;
     let intervalId;
-    const calls = ['tech', 'billing', 'spam'];
+    const calls = ['tech', 'billing', 'sales', 'spam'];
+    let selectedCall = null;
 
     const gameArea = document.getElementById('gameArea');
     const scoreDisplay = document.getElementById('score');
     const leaderboard = document.getElementById('leaderboard');
     const gameOverlay = document.getElementById('gameOverlay');
+    const overlayTitle = gameOverlay.querySelector("h2");
     const rules = document.getElementById('rules');
     const startBtn = document.getElementById('startBtn');
     const incomingCalls = document.getElementById('incomingCalls');
@@ -226,8 +232,6 @@
     const correctSound = document.getElementById('correctSound');
     const wrongSound = document.getElementById('wrongSound');
     const powerupSound = document.getElementById('powerupSound');
-
-    let selectedCall = null;
 
     function startGame() {
       startBtn.style.display = 'none';
@@ -362,25 +366,23 @@
       }, 5000);
     }
 
-   function checkKPI() {
-  if (score >= 100 || score <= -50) {
-    clearInterval(intervalId);
+    function checkKPI() {
+      if (score >= 100 || score <= -50) {
+        clearInterval(intervalId);
 
-    const overlayTitle = gameOverlay.querySelector("h2");
+        if (score >= 100) {
+          overlayTitle.innerText = "🎉 Congratulations! You met your target KPI!";
+          overlayTitle.style.color = "limegreen";
+        } else {
+          overlayTitle.innerText = "😞 Sorry, you failed to meet your target KPI.";
+          overlayTitle.style.color = "red";
+        }
 
-    if (score >= 100) {
-      overlayTitle.innerText = "🎉 Congratulations! You met your target KPI!";
-      overlayTitle.style.color = "limegreen";
-    } else {
-      overlayTitle.innerText = "😞 Sorry, you failed to meet your target KPI.";
-      overlayTitle.style.color = "red";
+        gameOverlay.style.display = 'flex';
+        return true;
+      }
+      return false;
     }
-
-    gameOverlay.style.display = 'flex';
-    return true;
-  }
-  return false;
-}
   </script>
 </body>
 </html>
