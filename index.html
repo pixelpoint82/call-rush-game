@@ -362,15 +362,18 @@
       }, 5000);
     }
 
-    function checkKPI() {
+   function checkKPI() {
   if (score >= 100 || score <= -50) {
     clearInterval(intervalId);
 
     const overlayTitle = gameOverlay.querySelector("h2");
+
     if (score >= 100) {
       overlayTitle.innerText = "🎉 Congratulations! You met your target KPI!";
+      overlayTitle.style.color = "limegreen";
     } else {
       overlayTitle.innerText = "😞 Sorry, you failed to meet your target KPI.";
+      overlayTitle.style.color = "red";
     }
 
     gameOverlay.style.display = 'flex';
