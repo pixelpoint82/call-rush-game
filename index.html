@@ -16,6 +16,9 @@
     .powerup { background: green; color: white; padding: 10px; border-radius: 5px; margin-top: 10px; cursor: pointer; display: inline-block; }
     #startBtn, #retryBtn { font-size: 20px; padding: 12px 25px; border-radius: 8px; background: darkorange; color: white; border: none; cursor: pointer; margin-top: 20px; }
     #gameOver { display: none; font-size: 24px; margin-top: 20px; color: red; }
+    #rules { max-width: 400px; margin: 15px auto; background: #2b2b2b; border: 1px solid #555; padding: 15px; border-radius: 10px; text-align: left; font-size: 15px; }
+    #rules h2 { color: #ffd700; font-size: 18px; margin-top: 0; }
+    #rules ul { padding-left: 20px; line-height: 1.5; }
   </style>
 </head>
 <body>
@@ -23,6 +26,23 @@
   <h1>📞 Call Rush!</h1>
   <button id="startBtn" onclick="startGame()">▶️ Start Game</button>
   <button id="retryBtn" onclick="retryGame()" style="display:none;">🔁 Retry</button>
+
+  <div id="rules">
+    <h2>📋 How to Play</h2>
+    <ul>
+      <li>Incoming calls will fall from the top.</li>
+      <li>Drag each call to the correct department:</li>
+      <ul>
+        <li><strong>Tech</strong> → tech calls</li>
+        <li><strong>Billing</strong> → billing calls</li>
+        <li><strong>Ignore</strong> → spam calls</li>
+      </ul>
+      <li>Each correct drop = <strong>+10 points</strong></li>
+      <li>Wrong drop or missed call = <strong>-5 to -10 points</strong></li>
+      <li>Reach <strong>100 points to win</strong>, or <strong>-50 ends the game</strong></li>
+      <li>Use <strong>☕ Coffee Break</strong> to slow the calls temporarily</li>
+    </ul>
+  </div>
 
   <div id="gameArea">
     <div id="incomingCalls"></div>
