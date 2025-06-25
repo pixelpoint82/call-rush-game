@@ -73,8 +73,8 @@
     .dropzone {
       flex: 1;
       margin: 5px;
-      min-width: 90px;
-      max-width: 100px;
+      min-width: 70px;
+      max-width: 90px;
       height: 80px;
       background: #444;
       border: 2px dashed #ccc;
@@ -166,38 +166,56 @@
     let level = 1;
     let speed = 30;
     let intervalId;
-    const calls = ['tech', 'billing', 'sales', 'spam'];
     let selectedCall = null;
+    let coffeeBreakBonus = 0;
 
-    const levelDisplay = document.getElementById("level");
-    const scoreDisplay = document.getElementById("score");
-    const overlayTitle = document.querySelector("#gameOverlay h2");
 
-    function startGame() {
-      score = 0;
-      level = 1;
-      speed = 30;
-      document.getElementById("startBtn").style.display = "none";
-      document.getElementById("rules").style.display = "none";
-      document.getElementById("gameArea").style.display = "block";
-      document.getElementById("gameOverlay").style.display = "none";
-      updateScore(0);
-      intervalId = setInterval(createCall, 2000);
-    }
+ const callTypes = {
+  tech: [
+    "network", "router", "slow internet", "VPN issue", "server down",
+    "no signal", "reboot needed", "device error", "IT support", "LAN problem",
+    "Wi-Fi drop", "login issue", "blue screen", "firmware bug", "update failed"
+  ],
+  billing: [
+    "invoice", "refund", "overcharge", "payment failed", "subscription",
+    "late fee", "chargeback", "bill inquiry", "unauthorized charge", "payment plan",
+    "invoice copy", "auto-pay issue", "tax question", "billing cycle", "due date"
+  ],
+  sales: [
+    "upgrade", "promo offer", "discount", "new plan", "bundle deal",
+    "cross-sell", "upsize", "recontract", "special rate", "limited time",
+    "renewal", "buy 1 get 1", "overdue", "free trial", "new device"
+  ],
+  spam: [
+    "spam", "prank", "wrong number", "telemarketer", "dead air",
+    "silent call", "scam", "bot call", "sales pitch", "robocall",
+    "nuisance", "hang-up", "junk call", "fake inquiry", "unknown"
+  ]
+};
 
-    function retryGame() {
+const departments = Object.keys(callTypes);
+const incomingCalls = document.getElementById("incomingCalls");
+const scoreDisplay = document.getElementById("score");
+const levelDisplay = document.getElementById("level");
+const overlayTitle = document.querySelector("#gameOverlay h2");
+
+function startGame() {
+  score = 0;
+  level = 1;
+  speed = 30;
+  document.getElementById("startBtn").style.display = "none";
+  document.getElementById("rules").style.display = "none";
+  document.getElementById("gameArea").style.display = "block";
+  document.getElementById("gameOverlay").style.display = "none";
+  updateScore(0);
+  intervalId = setInterval(createCall, 2000);
+}
+
+function retryGame() {
       clearInterval(intervalId);
       startGame();
     }
-
-    function goHome() {
-      clearInterval(intervalId);
-      document.getElementById("gameArea").style.display = "none";
-      document.getElementById("rules").style.display = "block";
-      document.getElementById("startBtn").style.display = "inline-block";
-    }
-
-    function updateScore(val) {
+function updateScore(val) {
       score += val;
       scoreDisplay.innerText = "Score: " + score;
       if (score >= level * 100 && level < 10) {
@@ -225,61 +243,63 @@
       return false;
     }
 
-    function createCall() {
-      const call = document.createElement("div");
-      const type = calls[Math.floor(Math.random() * calls.length)];
-      call.className = "call";
-      call.innerText = type;
-      call.dataset.type = type;
-      call.style.left = Math.random() * 80 + "%";
-      call.onclick = () => selectCall(call);
 
-      document.getElementById("incomingCalls").appendChild(call);
+function createCall() {
+  const dept = departments[Math.floor(Math.random() * departments.length)];
+  const label = callTypes[dept][Math.floor(Math.random() * callTypes[dept].length)];
+  const call = document.createElement("div");
+  call.className = "call";
+  call.innerText = label;
+  call.dataset.type = dept;
+  call.style.left = Math.random() * 80 + "%";
+  call.style.top = "0px";
+  incomingCalls.appendChild(call);
 
-      let topPos = 0;
-      const fall = setInterval(() => {
-        if (!call.parentNode) return clearInterval(fall);
-        topPos += 2;
-        call.style.top = topPos + "px";
-        if (topPos > 220) {
-          call.remove();
-          updateScore(-10);
-          clearInterval(fall);
-        }
-      }, speed);
+  call.addEventListener("click", () => {
+    if (selectedCall && selectedCall !== call) {
+      selectedCall.classList.remove("selected");
+    }
+    selectedCall = call;
+    call.classList.toggle("selected");
+    if (!call.classList.contains("selected")) {
+      selectedCall = null;
+    }
+  });
+
+  let pos = 0;
+  const fall = setInterval(() => {
+    pos += 2;
+    if (pos >= 180) {
+      clearInterval(fall);
+      if (incomingCalls.contains(call)) {
+        call.remove();
+        let missedPenalty = -10 - (level - 1) * 2;
+        updateScore(missedPenalty);
+      }
+    } else {
+      call.style.top = pos + "px";
+    }
+  }, speed);
+}
+
+document.querySelectorAll('.dropzone').forEach(zone => {
+  zone.addEventListener("click", () => {
+    if (!selectedCall) return;
+    const callType = selectedCall.dataset.type;
+    const expected = zone.dataset.type;
+
+    if ((expected === 'spam' && callType === 'spam') || expected === callType) {
+      updateScore(10);
+      if (callType === "sales") coffeeBreakBonus += 5;
+    } else {
+      let wrongPenalty = -5 - (level - 1);
+      updateScore(wrongPenalty);
     }
 
-    function selectCall(call) {
-      if (selectedCall) selectedCall.classList.remove("selected");
-      selectedCall = call;
-      call.classList.add("selected");
-    }
-
-    document.querySelectorAll('.dropzone').forEach(zone => {
-      zone.onclick = () => {
-        if (!selectedCall) return;
-        const expected = zone.dataset.type;
-        const actual = selectedCall.dataset.type;
-        if ((expected === 'ignore' && actual === 'spam') || expected === actual) {
-          updateScore(10);
-          if (actual === 'sales') powerupTime += 5;
-        } else {
-          updateScore(-5);
-        }
-        selectedCall.remove();
-        selectedCall = null;
-      };
-    });
-
-    let powerupTime = 5;
-    function activatePowerup() {
-      speed += 20;
-      document.querySelector(".powerup").innerText = `☕ Coffee Break (${powerupTime}s)`;
-      setTimeout(() => {
-        speed -= 20;
-        document.querySelector(".powerup").innerText = "☕ Coffee Break";
-      }, powerupTime * 1000);
-    }
+    selectedCall.remove();
+    selectedCall = null;
+  });
+});
   </script>
 </body>
 </html>
