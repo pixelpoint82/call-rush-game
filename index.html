@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Call Rush Game</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
     body {
       margin: 0;
       font-family: sans-serif;
@@ -15,37 +18,80 @@
     h1 {
       color: gold;
       margin-top: 20px;
+      font-size: 5vw;
     }
+    #startBtn, .overlayBtn {
+      font-size: 1.2rem;
+      padding: 12px 25px;
+      border-radius: 8px;
+      background: darkorange;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin: 10px;
+    }
+    #rules {
+      max-width: 90%;
+      margin: 15px auto;
+      background: #2b2b2b;
+      border: 1px solid #555;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: left;
+      font-size: 0.95rem;
+    }
+    #rules h2 {
+      color: #ffd700;
+      font-size: 1.1rem;
+      margin-top: 0;
+    }
+    #rules ul {
+      padding-left: 20px;
+      line-height: 1.5;
+    }
+
     #gameArea {
+      width: 90%;
       max-width: 400px;
       margin: 0 auto;
       display: none;
     }
+
     #incomingCalls {
       position: relative;
       width: 100%;
-      height: 400px;
+      height: 50vh;
+      min-height: 250px;
+      max-height: 400px;
       background: #333;
       border: 3px solid gold;
       border-radius: 10px;
       overflow: hidden;
       margin: 20px auto;
     }
+
     .call {
       position: absolute;
-      padding: 10px 15px;
+      padding: 10px;
       background: cyan;
       color: black;
       font-weight: bold;
       border-radius: 8px;
+      font-size: 0.9rem;
     }
+
     #departments {
       display: flex;
       justify-content: space-around;
       margin-top: 10px;
+      flex-wrap: wrap;
     }
+
     .dropzone {
-      width: 100px;
+      flex: 1;
+      margin: 5px;
+      min-width: 90px;
+      max-width: 100px;
       height: 100px;
       background: #555;
       border: 2px dashed #ccc;
@@ -55,11 +101,13 @@
       justify-content: center;
       color: white;
     }
+
     #score, #leaderboard {
       margin-top: 10px;
-      font-size: 18px;
+      font-size: 1rem;
       color: lightyellow;
     }
+
     .powerup {
       background: green;
       color: white;
@@ -69,35 +117,6 @@
       cursor: pointer;
       display: inline-block;
     }
-    #startBtn {
-      font-size: 20px;
-      padding: 12px 25px;
-      border-radius: 8px;
-      background: darkorange;
-      color: white;
-      border: none;
-      cursor: pointer;
-      margin-top: 20px;
-    }
-    #rules {
-      max-width: 400px;
-      margin: 15px auto;
-      background: #2b2b2b;
-      border: 1px solid #555;
-      padding: 15px;
-      border-radius: 10px;
-      text-align: left;
-      font-size: 15px;
-    }
-    #rules h2 {
-      color: #ffd700;
-      font-size: 18px;
-      margin-top: 0;
-    }
-    #rules ul {
-      padding-left: 20px;
-      line-height: 1.5;
-    }
 
     /* Game Over Overlay */
     #gameOverlay {
@@ -106,26 +125,32 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.85);
+      background: rgba(0, 0, 0, 0.9);
       display: none;
       justify-content: center;
       align-items: center;
       flex-direction: column;
       z-index: 1000;
+      padding: 20px;
     }
     #gameOverlay h2 {
       color: red;
-      font-size: 32px;
+      font-size: 2rem;
       margin-bottom: 20px;
     }
-    #retryBtn {
-      font-size: 20px;
-      padding: 12px 25px;
-      border-radius: 8px;
-      background: limegreen;
-      color: white;
-      border: none;
-      cursor: pointer;
+
+    @media (max-width: 500px) {
+      .dropzone {
+        height: 80px;
+        font-size: 0.9rem;
+      }
+      .call {
+        font-size: 0.8rem;
+      }
+      #startBtn, .overlayBtn {
+        font-size: 1rem;
+        padding: 10px 20px;
+      }
     }
   </style>
 </head>
@@ -137,17 +162,15 @@
   <div id="rules">
     <h2>📋 How to Play</h2>
     <ul>
-      <li>Incoming calls will fall from the top.</li>
-      <li>Drag each call to the correct department:</li>
+      <li>Drag falling calls to the correct department:</li>
       <ul>
         <li><strong>Tech</strong> → tech calls</li>
         <li><strong>Billing</strong> → billing calls</li>
         <li><strong>Ignore</strong> → spam calls</li>
       </ul>
-      <li>Each correct drop = <strong>+10 points</strong></li>
-      <li>Wrong drop or missed call = <strong>-5 to -10 points</strong></li>
-      <li>Reach <strong>100 points to win</strong>, or <strong>-50 ends the game</strong></li>
-      <li>Use <strong>☕ Coffee Break</strong> to slow the calls temporarily</li>
+      <li>Correct = <strong>+10</strong>, Wrong = <strong>-5</strong>, Missed = <strong>-10</strong></li>
+      <li>Reach <strong>100 points</strong> to win, or <strong>-50</strong> ends the game.</li>
+      <li>Use ☕ <strong>Coffee Break</strong> to slow calls for 5 seconds.</li>
     </ul>
   </div>
 
@@ -166,7 +189,8 @@
   <!-- Game Over Overlay -->
   <div id="gameOverlay">
     <h2>🚨 Game Over: KPI Met!</h2>
-    <button id="retryBtn" onclick="retryGame()">🔁 Retry</button>
+    <button class="overlayBtn" onclick="retryGame()">🔁 Retry</button>
+    <button class="overlayBtn" onclick="goHome()">🏠 Home</button>
   </div>
 
   <!-- Sounds -->
@@ -187,6 +211,7 @@
     const gameOverlay = document.getElementById('gameOverlay');
     const rules = document.getElementById('rules');
     const startBtn = document.getElementById('startBtn');
+    const incomingCalls = document.getElementById('incomingCalls');
 
     const callSound = document.getElementById('callSound');
     const correctSound = document.getElementById('correctSound');
@@ -198,14 +223,24 @@
       rules.style.display = 'none';
       gameOverlay.style.display = 'none';
       gameArea.style.display = 'block';
+      incomingCalls.innerHTML = '';
       score = 0;
       updateScore(0);
       intervalId = setInterval(createCall, 2000);
     }
 
     function retryGame() {
-      document.getElementById('incomingCalls').innerHTML = '';
+      clearInterval(intervalId);
       startGame();
+    }
+
+    function goHome() {
+      clearInterval(intervalId);
+      gameArea.style.display = 'none';
+      rules.style.display = 'block';
+      startBtn.style.display = 'inline-block';
+      gameOverlay.style.display = 'none';
+      score = 0;
     }
 
     function createCall() {
@@ -218,14 +253,14 @@
       call.dataset.type = type;
       call.style.left = Math.floor(Math.random() * 250) + 'px';
       call.style.top = '0px';
-      document.getElementById('incomingCalls').appendChild(call);
+      incomingCalls.appendChild(call);
       drag(call);
       callSound.play();
 
       let pos = 0;
       const fall = setInterval(() => {
         pos += 2;
-        if (pos >= 400) {
+        if (pos >= incomingCalls.clientHeight - 30) {
           clearInterval(fall);
           call.remove();
           updateScore(-10);
