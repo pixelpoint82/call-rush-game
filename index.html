@@ -16,7 +16,7 @@
     h1 {
       color: gold;
       margin-top: 20px;
-      font-size: 10vw;
+      font-size: 5vw;
     }
     #startBtn, .overlayBtn {
       font-size: 1.2rem;
@@ -76,6 +76,19 @@
       font-weight: bold;
       border-radius: 8px;
       font-size: 0.9rem;
+      cursor: pointer;
+      transition: box-shadow 0.3s ease;
+    }
+
+    .call.selected {
+      animation: glow 1s infinite;
+      box-shadow: 0 0 10px 2px yellow;
+    }
+
+    @keyframes glow {
+      0% { box-shadow: 0 0 5px 2px yellow; }
+      50% { box-shadow: 0 0 15px 4px yellow; }
+      100% { box-shadow: 0 0 5px 2px yellow; }
     }
 
     #departments {
@@ -116,7 +129,6 @@
       display: inline-block;
     }
 
-    /* Game Over Overlay */
     #gameOverlay {
       position: fixed;
       top: 0;
@@ -160,15 +172,16 @@
   <div id="rules">
     <h2>📋 How to Play</h2>
     <ul>
-      <li>Drag falling calls to the correct department:</li>
+      <li>Tap a call to select it</li>
+      <li>Then tap the correct department:</li>
       <ul>
         <li><strong>Tech</strong> → tech calls</li>
         <li><strong>Billing</strong> → billing calls</li>
         <li><strong>Ignore</strong> → spam calls</li>
       </ul>
-      <li>Correct = <strong>+10</strong>, Wrong = <strong>-5</strong>, Missed = <strong>-10</strong></li>
-      <li>Reach <strong>100 points</strong> to win, or <strong>-50</strong> ends the game.</li>
-      <li>Use ☕ <strong>Coffee Break</strong> to slow calls for 5 seconds.</li>
+      <li>Correct = +10, Wrong = -5, Missed = -10</li>
+      <li>Get to 100 points to win, or -50 ends the game</li>
+      <li>Use ☕ Coffee Break to slow calls for 5 seconds</li>
     </ul>
   </div>
 
@@ -184,14 +197,12 @@
     <div id="leaderboard"></div>
   </div>
 
-  <!-- Game Over Overlay -->
   <div id="gameOverlay">
     <h2>🚨 Game Over: KPI Met!</h2>
     <button class="overlayBtn" onclick="retryGame()">🔁 Retry</button>
     <button class="overlayBtn" onclick="goHome()">🏠 Home</button>
   </div>
 
-  <!-- Sounds -->
   <audio id="callSound" src="sounds/call.mp3" preload="auto"></audio>
   <audio id="correctSound" src="sounds/correct.mp3" preload="auto"></audio>
   <audio id="wrongSound" src="sounds/wrong.mp3" preload="auto"></audio>
@@ -215,6 +226,8 @@
     const correctSound = document.getElementById('correctSound');
     const wrongSound = document.getElementById('wrongSound');
     const powerupSound = document.getElementById('powerupSound');
+
+    let selectedCall = null;
 
     function startGame() {
       startBtn.style.display = 'none';
@@ -243,6 +256,7 @@
 
     function createCall() {
       if (checkKPI()) return;
+
       const type = calls[Math.floor(Math.random() * calls.length)];
       const call = document.createElement('div');
       call.className = 'call';
@@ -259,9 +273,11 @@
         pos += 2;
         if (pos >= incomingCalls.clientHeight - 30) {
           clearInterval(fall);
-          call.remove();
-          updateScore(-10);
-          wrongSound.play();
+          if (incomingCalls.contains(call)) {
+            call.remove();
+            updateScore(-10);
+            wrongSound.play();
+          }
         } else {
           call.style.top = pos + 'px';
         }
@@ -269,64 +285,19 @@
     }
 
     function drag(el) {
-      // Desktop
       el.draggable = true;
       el.ondragstart = e => e.dataTransfer.setData("type", el.dataset.type);
 
-      // Touch support
-      el.addEventListener("touchstart", handleTouchStart, { passive: true });
-      el.addEventListener("touchmove", handleTouchMove, { passive: false });
-      el.addEventListener("touchend", handleTouchEnd, { passive: true });
-    }
-
-    let currentDragged = null;
-
-    function handleTouchStart(e) {
-      currentDragged = e.target;
-      currentDragged.style.zIndex = 1000;
-    }
-
-    function handleTouchMove(e) {
-      e.preventDefault();
-      const touch = e.touches[0];
-      currentDragged.style.position = "absolute";
-      currentDragged.style.left = touch.clientX - 25 + "px";
-      currentDragged.style.top = touch.clientY - 25 + "px";
-    }
-
-    function handleTouchEnd(e) {
-      const callType = currentDragged.dataset.type;
-      const callBox = currentDragged.getBoundingClientRect();
-      const dropzones = document.querySelectorAll('.dropzone');
-      let dropped = false;
-
-      dropzones.forEach(zone => {
-        const rect = zone.getBoundingClientRect();
-        if (
-          callBox.left < rect.right &&
-          callBox.right > rect.left &&
-          callBox.top < rect.bottom &&
-          callBox.bottom > rect.top
-        ) {
-          const zoneType = zone.dataset.type;
-          if ((zoneType === 'ignore' && callType === 'spam') || zoneType === callType) {
-            updateScore(10);
-            correctSound.play();
-          } else {
-            updateScore(-5);
-            wrongSound.play();
-          }
-          dropped = true;
+      el.addEventListener("click", () => {
+        if (selectedCall && selectedCall !== el) {
+          selectedCall.classList.remove("selected");
+        }
+        selectedCall = el;
+        el.classList.toggle("selected");
+        if (!el.classList.contains("selected")) {
+          selectedCall = null;
         }
       });
-
-      if (!dropped) {
-        updateScore(-10);
-        wrongSound.play();
-      }
-
-      currentDragged.remove();
-      currentDragged = null;
     }
 
     document.querySelectorAll('.dropzone').forEach(zone => {
@@ -344,6 +315,23 @@
         }
         if (call) call.remove();
       };
+
+      zone.addEventListener("click", () => {
+        if (!selectedCall) return;
+        const callType = selectedCall.dataset.type;
+        const expected = zone.dataset.type;
+
+        if ((expected === 'ignore' && callType === 'spam') || expected === callType) {
+          updateScore(10);
+          correctSound.play();
+        } else {
+          updateScore(-5);
+          wrongSound.play();
+        }
+
+        selectedCall.remove();
+        selectedCall = null;
+      });
     });
 
     function updateScore(val) {
