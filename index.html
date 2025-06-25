@@ -2,23 +2,26 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Call Rush Game</title>
   <style>
     body { margin: 0; font-family: sans-serif; background: #1a1a1a; color: white; text-align: center; }
     h1 { color: gold; margin-top: 20px; }
-    #gameArea { max-width: 400px; margin: 0 auto; }
+    #gameArea { max-width: 400px; margin: 0 auto; display: none; }
     #incomingCalls { position: relative; width: 100%; height: 400px; background: #333; border: 3px solid gold; border-radius: 10px; overflow: hidden; margin: 20px auto; }
     .call { position: absolute; padding: 10px 15px; background: cyan; color: black; font-weight: bold; border-radius: 8px; }
     #departments { display: flex; justify-content: space-around; margin-top: 10px; }
     .dropzone { width: 100px; height: 100px; background: #555; border: 2px dashed #ccc; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; }
-    #score { font-size: 20px; margin-top: 10px; }
-    .powerup { background: green; color: white; padding: 10px; border-radius: 5px; margin-top: 10px; display: inline-block; cursor: pointer; }
-    #leaderboard { margin-top: 10px; font-size: 18px; color: lightyellow; }
+    #score, #leaderboard { margin-top: 10px; font-size: 18px; color: lightyellow; }
+    .powerup, #startBtn { background: green; color: white; padding: 10px; border-radius: 5px; margin-top: 10px; cursor: pointer; display: inline-block; }
+    #gameOver { display: none; font-size: 24px; margin-top: 20px; color: red; }
   </style>
 </head>
 <body>
+
   <h1>📞 Call Rush!</h1>
+  <button id="startBtn" onclick="startGame()">▶️ Start Game</button>
+
   <div id="gameArea">
     <div id="incomingCalls"></div>
     <div id="departments">
@@ -29,9 +32,10 @@
     <div id="score">Score: 0</div>
     <div class="powerup" onclick="activatePowerup()">☕ Coffee Break</div>
     <div id="leaderboard"></div>
+    <div id="gameOver">🚨 Game Over: KPI Met!</div>
   </div>
 
-  <!-- Sound effects -->
+  <!-- Sounds -->
   <audio id="callSound" src="sounds/call.mp3" preload="auto"></audio>
   <audio id="correctSound" src="sounds/correct.mp3" preload="auto"></audio>
   <audio id="wrongSound" src="sounds/wrong.mp3" preload="auto"></audio>
@@ -40,32 +44,43 @@
   <script>
     let score = 0;
     let speed = 30;
-    const gameArea = document.getElementById('incomingCalls');
+    let intervalId;
+    const calls = ['tech', 'billing', 'spam'];
+    const gameArea = document.getElementById('gameArea');
     const scoreDisplay = document.getElementById('score');
-    const callTypes = ['tech', 'billing', 'spam'];
+    const leaderboard = document.getElementById('leaderboard');
+    const gameOver = document.getElementById('gameOver');
 
     const callSound = document.getElementById('callSound');
     const correctSound = document.getElementById('correctSound');
     const wrongSound = document.getElementById('wrongSound');
     const powerupSound = document.getElementById('powerupSound');
 
+    function startGame() {
+      document.getElementById('startBtn').style.display = 'none';
+      gameArea.style.display = 'block';
+      intervalId = setInterval(createCall, 2000);
+    }
+
     function createCall() {
-      const type = callTypes[Math.floor(Math.random() * callTypes.length)];
+      if (checkKPI()) return;
+
+      const type = calls[Math.floor(Math.random() * calls.length)];
       const call = document.createElement('div');
       call.className = 'call';
       call.innerText = type;
       call.dataset.type = type;
       call.style.left = Math.floor(Math.random() * 250) + 'px';
       call.style.top = '0px';
-      gameArea.appendChild(call);
+      document.getElementById('incomingCalls').appendChild(call);
       drag(call);
       callSound.play();
 
       let pos = 0;
-      const interval = setInterval(() => {
+      const fall = setInterval(() => {
         pos += 2;
         if (pos >= 400) {
-          clearInterval(interval);
+          clearInterval(fall);
           call.remove();
           updateScore(-10);
           wrongSound.play();
@@ -79,7 +94,6 @@
       el.draggable = true;
       el.ondragstart = e => {
         e.dataTransfer.setData("type", el.dataset.type);
-        e.dataTransfer.setData("id", el.id);
       };
     }
 
@@ -100,10 +114,21 @@
       };
     });
 
-    function updateScore(value) {
-      score += value;
+    function updateScore(val) {
+      score += val;
       scoreDisplay.innerText = "Score: " + score;
       updateLeaderboard();
+      checkKPI();
+    }
+
+    function updateLeaderboard() {
+      const best = localStorage.getItem("bestScore") || 0;
+      if (score > best) {
+        localStorage.setItem("bestScore", score);
+        leaderboard.innerText = "🏆 New High Score: " + score;
+      } else {
+        leaderboard.innerText = "High Score: " + best;
+      }
     }
 
     function activatePowerup() {
@@ -117,17 +142,14 @@
       }, 5000);
     }
 
-    function updateLeaderboard() {
-      const best = localStorage.getItem("bestScore") || 0;
-      if (score > best) {
-        localStorage.setItem("bestScore", score);
-        document.getElementById("leaderboard").innerText = "🏆 New High Score: " + score;
-      } else {
-        document.getElementById("leaderboard").innerText = "High Score: " + best;
+    function checkKPI() {
+      if (score >= 100 || score <= -50) {
+        clearInterval(intervalId);
+        gameOver.style.display = 'block';
+        return true;
       }
+      return false;
     }
-
-    setInterval(createCall, 2000);
   </script>
 </body>
 </html>
